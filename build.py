@@ -149,3 +149,25 @@ class Build_games:
             4: "Expert"
         }
         return names.get(self.difficulty, "Inconnu")
+    def undo_last_move(self):
+        """Annule le dernier mouvement """
+        if not self.back_move:
+            return False  # Aucun mouvement à annuler
+        
+        # Méthode simple : on recharge la grille et on rejoue tous les mouvements sauf le dernier
+        if len(self.back_move) == 1:
+            # Si c'est le premier mouvement, on reset complètement
+            self.reset_game()
+            return True
+        
+        # Sauvegarde tous les mouvements sauf le dernier
+        moves_to_replay = self.back_move[:-1]
+        
+        # Reset du jeu
+        self.reset_game()
+        
+        # Rejoue tous les mouvements sauf le dernier
+        for move in moves_to_replay:
+            self.execute_move(move)
+        
+        return True

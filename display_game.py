@@ -26,6 +26,65 @@ class SokobanDisplay:
         
         self.game = None
         self.screen = None
+    
+    def show_main_menu(self):
+        """Affiche le menu principal"""
+        # Crée une fenêtre pour le menu
+        menu_screen = pygame.display.set_mode((400, 400))
+        pygame.display.set_caption("Sokoban Menu")
+        
+        while True:
+            menu_screen.fill(self.BLACK)
+            title = self.font.render("SOKOBAN", True, self.WHITE)
+            new_game = self.font.render("1. Nouvelle partie", True, self.WHITE)
+            quit_game = self.font.render("2. Quitter", True, self.WHITE)
+
+            menu_screen.blit(title, (200 - title.get_width()//2, 100))
+            menu_screen.blit(new_game, (200 - new_game.get_width()//2, 200))
+            menu_screen.blit(quit_game, (200 - quit_game.get_width()//2, 250))
+
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_1:
+                        return self.show_difficulty_menu(menu_screen)
+                    elif event.key == pygame.K_2:
+                        pygame.quit()
+                        sys.exit()
+
+    def show_difficulty_menu(self, menu_screen):
+        """Affiche le menu de sélection de difficulté"""
+        while True:
+            menu_screen.fill(self.BLACK)
+            title = self.font.render("CHOISIR LA DIFFICULTE", True, self.WHITE)
+            menu_screen.blit(title, (200 - title.get_width()//2, 100))
+
+            options = [
+                ("1. Facile", 1),
+                ("2. Normal", 2),
+                ("3. Difficile", 3),
+                ("4. Expert", 4)
+            ]
+
+            for i, (text, _) in enumerate(options):
+                rendered = self.small_font.render(text, True, self.WHITE)
+                menu_screen.blit(rendered, (200 - rendered.get_width()//2, 180 + i * 40))
+
+            pygame.display.flip()
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if pygame.K_1 <= event.key <= pygame.K_4:
+                        return options[event.key - pygame.K_1][1]
+                    elif event.key == pygame.K_ESCAPE:
+                        return None
         
     def setup_game(self, difficulty=1):
         """Initialise le jeu avec la difficulté spécifiée"""
@@ -119,10 +178,41 @@ class SokobanDisplay:
         elif key == pygame.K_r:
             # Reset du jeu
             self.game.reset_game()
+        elif key == pygame.K_u:  # NOUVEAU: Touche U pour annuler
+            # Annule le dernier mouvement
+            self.game.undo_last_move()
         elif key == pygame.K_ESCAPE:
             return False  # Indique qu'on veut quitter
         
         return True  # Continue le jeu
+    
+    def draw_game(self):
+            """Dessine tout le jeu"""
+            self.screen.fill(self.WHITE)
+            
+            # Dessine la grille
+            for i, row in enumerate(self.game.grid):
+                for j, cell in enumerate(row):
+                    x = self.MARGIN + j * self.CELL_SIZE
+                    y = self.MARGIN + i * self.CELL_SIZE
+                    self.draw_cell(x, y, cell)
+            
+            # Informations en haut
+            difficulty_text = self.small_font.render(f"Niveau: {self.game.get_difficulty_name()}", True, self.BLACK)
+            moves_text = self.small_font.render(f"Coups: {self.game.get_moves_count()}", True, self.BLACK)
+            player_text = self.small_font.render(f"Joueur: {self.game.player_name}", True, self.BLACK)
+            # MODIFIÉ: Ajout de la touche U dans les contrôles
+            controls_text = self.small_font.render("Flèches=Bouger, U=Annuler, R=Reset, ESC=Quitter", True, self.BLACK)
+            
+            self.screen.blit(difficulty_text, (10, 10))
+            self.screen.blit(moves_text, (10, 30))
+            self.screen.blit(player_text, (10, 50))
+            
+            # Contrôles en bas
+            screen_height = self.screen.get_height()
+            self.screen.blit(controls_text, (10, screen_height - 30))
+            
+            pygame.display.flip()
     
     def show_victory(self):
         """Affiche l'écran de victoire"""
@@ -187,8 +277,18 @@ class SokobanDisplay:
         pygame.display.quit()
         return  # Retourne au lieu de quitter complètement
 
+    def start_game(self):
+        """Méthode principale pour démarrer le jeu avec menu"""
+        while True:
+            difficulty = self.show_main_menu()
+            if difficulty is not None:
+                self.setup_game(difficulty=difficulty)
+                self.run()
+                # Après la partie, on retourne au menu principal
+            else:
+                break  # Si l'utilisateur ferme le jeu
+
 # Pour tester directement
 if __name__ == "__main__":
     game = SokobanDisplay()
-    game.setup_game(1)  # Initialise avec difficulté 1
-    game.run()
+    game.start_game()

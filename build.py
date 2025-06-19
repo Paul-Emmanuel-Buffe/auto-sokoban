@@ -1,29 +1,17 @@
 from grid import *
 
-from grid import *
-
 class Build_games:
     def __init__(self, difficulty=1, player_name="Joueur"):
         self.player_name = player_name
         self.difficulty = difficulty
-        self.grid = []  # Initialisation ajoutée
-        self.setup_grid()
-        self.find_player()  # Appel correct de la méthode
-        self.back_move = []
+        self.grid = []
         self.original_grid = None
+        self.back_move = []
+        self.target_positions = []  # CORRECTION: Initialisation ajoutée
+        
+        self.setup_grid()  # Cette méthode charge la bonne grille
+        self.placement = self.find_player()
 
-    def find_player(self):
-        """Trouve la position du joueur"""
-        for i, row in enumerate(self.grid):
-            for j, cell in enumerate(row):
-                if cell == "p":
-                    self.player_i = i
-                    self.player_j = j
-                    return (i, j)
-        return None
-
-
-    
     def setup_grid(self):
         """Configure la grille selon la difficulté"""
         grid_map = {
@@ -33,8 +21,12 @@ class Build_games:
             4: expert_grid
         }
         
-        # Utilise la grille correspondante ou facile par défaut
-        selected_grid = grid_map.get(self.difficulty, easy_grid)
+        # Validation de la difficulté
+        if self.difficulty not in grid_map:
+            print(f"Difficulté {self.difficulty} invalide, utilisation du niveau Facile")
+            self.difficulty = 1
+        
+        selected_grid = grid_map[self.difficulty]
         
         # Initialise self.grid AVANT de l'utiliser
         self.grid = [list(row) for row in selected_grid]
@@ -42,7 +34,7 @@ class Build_games:
         # Sauvegarde pour le reset
         self.original_grid = [list(row) for row in selected_grid]
         
-        # Maintenant on peut utiliser self.grid
+        # CORRECTION: Trouve les positions des cibles
         self.target_positions = [(i, j) for i, row in enumerate(self.grid)
                                 for j, cell in enumerate(row) if cell == "o"]
         
@@ -51,18 +43,16 @@ class Build_games:
         target_count = len(self.target_positions)
         
         print(f"Niveau {self.difficulty}: {box_count} caisses, {target_count} cibles")
-            
 
-        
-        def find_player(self):
-            """Trouve la position du joueur dans la grille"""
-            for i, row in enumerate(self.grid):        
-                for j, cell in enumerate(row):         
-                    if cell == "p":
-                        self.player_i = i
-                        self.player_j = j
-                        return (i, j)
-            return None
+    def find_player(self):
+        """Trouve la position du joueur dans la grille"""
+        for i, row in enumerate(self.grid):        
+            for j, cell in enumerate(row):         
+                if cell == "p":
+                    self.player_i = i
+                    self.player_j = j
+                    return (i, j)
+        return None
     
     def _update_cell(self, i, j):
         """Met à jour une cellule en la vidant"""

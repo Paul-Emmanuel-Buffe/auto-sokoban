@@ -28,21 +28,22 @@ class SokobanDisplay:
         self.screen = None
         
     def setup_game(self, difficulty=1):
-        """Crée le jeu avec la difficulté"""
+        """Initialise le jeu avec la difficulté spécifiée"""
+        print(f"Configuration du jeu - Difficulté: {difficulty}")  # Debug
         self.game = Build_games(difficulty=difficulty, player_name="Joueur")
         
-        # Vérification que la grille est bien chargée
+        # Vérification
         if not hasattr(self.game, 'grid'):
-            raise ValueError("La grille n'a pas été chargée correctement")
+            raise ValueError("Erreur de chargement de la grille")
         
-        # Calcul de la taille de l'écran
+        # Calcul de la taille de la fenêtre
         rows = len(self.game.grid)
         cols = len(self.game.grid[0])
         width = cols * self.CELL_SIZE + 2 * self.MARGIN
         height = rows * self.CELL_SIZE + 2 * self.MARGIN + 100
         
         self.screen = pygame.display.set_mode((width, height))
-        pygame.display.set_caption(f"Sokoban - Niveau {difficulty}")
+        pygame.display.set_caption(f"Sokoban - {self.game.get_difficulty_name()}")
     
     def draw_cell(self, x, y, cell_type):
         """Dessine une cellule selon son type"""
@@ -70,8 +71,6 @@ class SokobanDisplay:
         
         # Bordure
         pygame.draw.rect(self.screen, self.BLACK, rect, 2)
-    
-
     
     def draw_game(self):
         """Dessine tout le jeu"""
@@ -120,6 +119,10 @@ class SokobanDisplay:
         elif key == pygame.K_r:
             # Reset du jeu
             self.game.reset_game()
+        elif key == pygame.K_ESCAPE:
+            return False  # Indique qu'on veut quitter
+        
+        return True  # Continue le jeu
     
     def show_victory(self):
         """Affiche l'écran de victoire"""
@@ -160,12 +163,12 @@ class SokobanDisplay:
                         self.game.reset_game()
                         waiting = False
                     elif event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        sys.exit()
+                        return False  # Indique qu'on veut quitter
+        
+        return True  # Continue le jeu
     
     def run(self):
         """Boucle principale du jeu"""
-        self.setup_game()
         running = True
         
         while running:
@@ -173,18 +176,19 @@ class SokobanDisplay:
                 if event.type == pygame.QUIT:
                     running = False
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
+                    # Gère les touches et vérifie si on doit quitter
+                    if not self.handle_key(event.key):
                         running = False
-                    else:
-                        self.handle_key(event.key)
             
             self.draw_game()
             self.clock.tick(60)
         
-        pygame.quit()
-        sys.exit()
+        # Nettoyage Pygame avant de retourner au menu
+        pygame.display.quit()
+        return  # Retourne au lieu de quitter complètement
 
 # Pour tester directement
 if __name__ == "__main__":
     game = SokobanDisplay()
+    game.setup_game(1)  # Initialise avec difficulté 1
     game.run()

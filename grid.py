@@ -39,17 +39,19 @@ hard_grid = [
 ]
 
 
-# EXPERT : 5 caisses, 5 cibles - Défi ultime
 expert_grid = [
     "#############",
     "#  o  #  o  #",
     "#     #     #",
-    "# r  ###  b #",  # caisse rouge à gauche
-    "#   # p #   #",
-    "# b  ###  r #",  # caisse rouge à droite
+    "# r  # #  b #",
+    "#   #   r   #",
+    "# b  #p#  r #",
     "#     #     #",
     "#  o  #  o  #",
-    "#     b     #",
+    "#     #     #",
     "#     o     #",
     "#############"
 ]
+
+
+

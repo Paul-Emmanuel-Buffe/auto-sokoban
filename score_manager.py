@@ -1,10 +1,12 @@
+import csv
+import os
 
 # Classe de gestion du scoreboard
-
 class ScoreManager:
     def __init__(self):
         
-        self.filename = "scores.csv"
+        self.filename = os.path.join(os.path.dirname(__file__), "scores.csv")
+
 
         self.difficulty_x = {
             1: 1, # Grille facile
@@ -13,8 +15,60 @@ class ScoreManager:
             4: 4  # Grille expert
         }
 
+        self._create_file_not_exists()
+
         print("ScoreManager initialisé")
 
+    def _create_file_not_exists(self):
+        
+        # Vérif de l'existence du csv
+        if not os.path.exists(self.filename):
+            print(f"Création csv {self.filename} !")
+
+            # Création du csv si absent
+            with open(self.filename, 'w', newline= '', encoding='utf-8') as file:
+                writer = csv.writer(file)
+
+                writer.writerow(["Nom", "Points"])
+
+                print(f"Fichier {self.filename} créé avec succés !")
+        else:
+            print(f" Fichier {self.filename} trouvé ! ") 
+
+
+
+    def save_score(self, player_name, difficulty, moves):
+        score = self.calculate_score(difficulty, moves)
+        joueur_found = False
+
+        # Lecture du fichier, sauf la première ligne (en-tête)
+        with open(self.filename, 'r', newline='', encoding='utf-8') as file:
+            reader = csv.reader(file)
+            header = next(reader)         # lire et stocker l'en-tête
+            lignes = list(reader)         # lire uniquement les données
+
+        # Update du score si joueur déjà présent
+        for i in range(len(lignes)):
+            nom, points = lignes[i]
+            if nom == player_name:
+                new_total = int(points) + score
+                lignes[i] = [player_name, new_total]
+                joueur_found = True
+                break
+
+        # Création si joueur absent
+        if not joueur_found:
+            lignes.append([player_name, score])
+
+        # Ecriture du fichier : écriture de l'en-tête + données (sans doublons)
+        with open(self.filename, 'w', newline='', encoding='utf-8') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Nom', 'Points'])  # Écrire une seule fois l'en-tête avec majuscule
+            writer.writerows(lignes)             # écrire uniquement les données
+
+        print(f"{player_name} -> {score} pts enregistrés")
+
+              
 
     def calculate_score(self, difficulty, moves): 
 
@@ -29,14 +83,31 @@ class ScoreManager:
         return score
 
     # Test
+# TEST DE L'ÉTAPE 2 - À exécuter pour vérifier
 if __name__ == "__main__":
-
+    print("=== TEST ETAPE 2 ===")
+    
+    # Crée un gestionnaire de scores
     manager = ScoreManager()
-
-
-score1 = manager.calculate_score(4, 20)
-print(f"Pierre(exp, 20 coups) : {score1} pts")  
-
-score2 = manager.calculate_score(2, 18)
-print(f"Marie(nomal, 18 coups) : {score2} pts")  
+    
+    print("\n--- Test de calcul (comme étape 1) ---")
+    # Test du calcul (comme étape 1)
+    score1 = manager.calculate_score(4, 20)  # Expert, 20 coups
+    score2 = manager.calculate_score(2, 18)  # Normal, 18 coups
+    print(f"Pierre (Expert, 20 coups) : {score1} points")
+    print(f"Marie (Normal, 18 coups) : {score2} points")
+    
+    print("\n--- Test de sauvegarde ---")
+    # NOUVEAU : Test de sauvegarde
+    print("Sauvegarde de quelques scores de test...")
+    
+    manager.save_score("Pierre", 4, 20)  # Expert, 20 coups
+    manager.save_score("Marie", 2, 18)   # Normal, 18 coups
+    manager.save_score("Jean", 1, 15)    # Facile, 15 coups
+    manager.save_score("Pierre", 3, 25)  # Pierre rejoue en Difficile
+    
+    print("\n✅ Vérifie maintenant le fichier 'scores.csv' dans ton dossier !")
+    print("Tu devrais voir 4 lignes de données + 1 ligne d'en-têtes")
+    
+    print("\n=== FIN TEST ETAPE 2 ===")
 

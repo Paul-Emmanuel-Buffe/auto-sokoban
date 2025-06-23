@@ -1,15 +1,15 @@
 from grid import *
 
 class Build_games:
-    def __init__(self, difficulty=1, player_name="Joueur"):
-        self.player_name = player_name
+    def __init__(self, difficulty=1, player_name="Joueur"):  # Modification ici
+        self.player_name = player_name  # Nouvelle ligne ajoutée
         self.difficulty = difficulty
         self.grid = []
         self.original_grid = None
         self.back_move = []
-        self.target_positions = []  # CORRECTION: Initialisation ajoutée
+        self.target_positions = []  
         
-        self.setup_grid()  # Cette méthode charge la bonne grille
+        self.setup_grid()
         self.placement = self.find_player()
 
     def setup_grid(self):

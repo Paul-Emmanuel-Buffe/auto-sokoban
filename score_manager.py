@@ -60,6 +60,10 @@ class ScoreManager:
         if not joueur_found:
             lignes.append([player_name, score])
 
+
+        # Tri des lignes par score décroissant (seule modification majeure)
+            lignes.sort(key=lambda x: int(x[1]), reverse=True)
+
         # Ecriture du fichier : écriture de l'en-tête + données (sans doublons)
         with open(self.filename, 'w', newline='', encoding='utf-8') as file:
             writer = csv.writer(file)
@@ -81,6 +85,28 @@ class ScoreManager:
             score = 0
 
         return score
+    
+    def get_scores(self):
+        """Récupère la liste des scores triés par ordre décroissant"""
+        scores = []
+        
+        try:
+            with open(self.filename, 'r', newline='', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                next(reader)  # Passe l'en-tête
+                
+                for row in reader:
+                    if len(row) >= 2:  # Vérification que la ligne a au moins 2 colonnes
+                        nom = row[0]
+                        points = int(row[1])
+                        scores.append((nom, points))
+                        
+        except FileNotFoundError:
+            print(f"Fichier {self.filename} non trouvé")
+        except Exception as e:
+            print(f"Erreur lors de la lecture des scores: {e}")
+        
+        return scores
 
     # Test
 # TEST DE L'ÉTAPE 2 - À exécuter pour vérifier

@@ -1,9 +1,10 @@
 import pygame
 import sys
 from build import Build_games
+from score_manager import ScoreManager
 
 class SokobanDisplay:
-    def __init__(self):
+    def __init__(self):  # This line was incorrectly indented
         pygame.init()
         
         # Constantes
@@ -26,6 +27,7 @@ class SokobanDisplay:
         
         self.game = None
         self.screen = None
+        self.score_manager = ScoreManager()  # <-- Ajout du gestionnaire de scores
     
     def show_main_menu(self):
         """Affiche le menu principal"""
@@ -37,12 +39,14 @@ class SokobanDisplay:
             menu_screen.fill(self.BLACK)
             title = self.font.render("SOKOBAN", True, self.WHITE)
             new_game = self.font.render("1. Nouvelle partie", True, self.WHITE)
-            quit_game = self.font.render("2. Quitter", True, self.WHITE)
+            scoreboard = self.font.render("2. Tableau des scores", True, self.WHITE)  # Nouvelle option
+            quit_game = self.font.render("3. Quitter", True, self.WHITE)
 
+        # Positions réorganisées (avec espacement)
             menu_screen.blit(title, (200 - title.get_width()//2, 100))
             menu_screen.blit(new_game, (200 - new_game.get_width()//2, 200))
-            menu_screen.blit(quit_game, (200 - quit_game.get_width()//2, 250))
-
+            menu_screen.blit(scoreboard, (200 - scoreboard.get_width()//2, 250))  # Ligne ajoutée
+            menu_screen.blit(quit_game, (200 - quit_game.get_width()//2, 300))  # Décalée vers le ba
             pygame.display.flip()
 
             for event in pygame.event.get():
@@ -53,6 +57,8 @@ class SokobanDisplay:
                     if event.key == pygame.K_1:
                         return self.show_difficulty_menu(menu_screen)
                     elif event.key == pygame.K_2:
+                        self.show_scoreboard()
+                    elif event.key == pygame.K_3:  # Décale la touche de sortie
                         pygame.quit()
                         sys.exit()
 
@@ -131,6 +137,53 @@ class SokobanDisplay:
         # Bordure
         pygame.draw.rect(self.screen, self.BLACK, rect, 2)
     
+
+    def show_scoreboard(self):
+        """Affiche le tableau des scores"""
+        score_screen = pygame.display.set_mode((600, 500))
+        pygame.display.set_caption("Tableau des Scores")
+        
+        while True:
+            score_screen.fill(self.BLACK)
+            
+            # Titre
+            title = self.font.render("TABLEAU DES SCORES", True, self.WHITE)
+            score_screen.blit(title, (300 - title.get_width()//2, 50))
+            
+            # Récupère les scores
+            try:
+                scores = self.score_manager.get_scores()
+            except:
+                scores = []
+                error_text = self.small_font.render("Erreur de chargement des scores", True, self.RED)
+                score_screen.blit(error_text, (300 - error_text.get_width()//2, 120))
+            
+            # En-têtes
+            header_name = self.small_font.render("Joueur", True, self.WHITE)
+            header_score = self.small_font.render("Score", True, self.WHITE)
+            score_screen.blit(header_name, (150, 120))
+            score_screen.blit(header_score, (450, 120))
+            
+            # Affichage des scores (maximum 10)
+            for i, (name, score) in enumerate(scores[:10]):
+                name_text = self.small_font.render(name, True, self.WHITE)
+                score_text = self.small_font.render(str(score), True, self.WHITE)
+                score_screen.blit(name_text, (150, 150 + i * 30))
+                score_screen.blit(score_text, (450, 150 + i * 30))
+            
+            # Instruction pour revenir
+            back_text = self.small_font.render("Appuyez sur ESPACE pour revenir au menu", True, self.WHITE)
+            score_screen.blit(back_text, (300 - back_text.get_width()//2, 450))
+            
+            pygame.display.flip()
+            
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        return
     def draw_game(self):
         """Dessine tout le jeu"""
         self.screen.fill(self.WHITE)
@@ -219,6 +272,13 @@ class SokobanDisplay:
         victory_screen = pygame.Surface(self.screen.get_size())
         victory_screen.set_alpha(200)  # Semi-transparent
         victory_screen.fill(self.BLACK)
+
+        # Sauvegarde du score
+        self.score_manager.save_score(
+            self.game.player_name,
+            self.game.difficulty,
+            self.game.get_moves_count()
+        )
         
         victory_text = self.font.render("🎉 VICTOIRE! 🎉", True, self.WHITE)
         moves_text = self.small_font.render(f"Terminé en {self.game.get_moves_count()} coups!", True, self.WHITE)

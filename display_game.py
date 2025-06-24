@@ -29,8 +29,19 @@ class SokobanDisplay:
         self.screen = None
         self.score_manager = ScoreManager()
     
+    def cleanup_game(self):
+        """Nettoie complètement l'état du jeu précédent"""
+        self.game = None
+        if self.screen:
+            pygame.display.quit()
+            pygame.display.init()
+        self.screen = None
+    
     def show_main_menu(self):
         """Affiche le menu principal avec un style moderne"""
+        # Nettoie l'état précédent avant d'afficher le menu
+        self.cleanup_game()
+        
         menu_screen = pygame.display.set_mode((500, 400))
         pygame.display.set_caption("Sokoban Menu")
 
@@ -217,20 +228,28 @@ class SokobanDisplay:
     def setup_game(self, difficulty=1, player_name="Joueur"):
         """Initialise le jeu avec la difficulté et le nom spécifiés"""
         print(f"Configuration du jeu - Joueur: {player_name}, Difficulté: {difficulty}")
+        
+        # CORRECTION: Nettoie complètement l'ancien jeu
+        self.cleanup_game()
+        
+        # CORRECTION: Crée toujours une nouvelle instance fraîche
         self.game = Build_games(difficulty=difficulty, player_name=player_name)
         
         # Vérification
         if not hasattr(self.game, 'grid'):
             raise ValueError("Erreur de chargement de la grille")
         
-        # Calcul de la taille de la fenêtre
+        # CORRECTION: Recalcule toujours la taille de fenêtre
         rows = len(self.game.grid)
         cols = len(self.game.grid[0])
         width = cols * self.CELL_SIZE + 2 * self.MARGIN
         height = rows * self.CELL_SIZE + 2 * self.MARGIN + 100
         
+        # CORRECTION: Recrée la fenêtre avec la bonne taille
         self.screen = pygame.display.set_mode((width, height))
         pygame.display.set_caption(f"Sokoban - {self.game.get_difficulty_name()}")
+        
+        print(f"Fenêtre créée: {width}x{height}")
     
     def draw_cell(self, x, y, cell_type):
         """Dessine une cellule selon son type"""
@@ -352,7 +371,9 @@ class SokobanDisplay:
             success = self.game.execute_move(move)
             
             if success and self.game.check_victory():
-                self.show_victory()
+                victory_result = self.show_victory()
+                if victory_result == "menu":
+                    return False  # Retourne False pour sortir de la boucle de jeu
                 
         elif key == pygame.K_r:
             self.game.reset_game()
@@ -364,31 +385,63 @@ class SokobanDisplay:
         return True
     
     def draw_game(self):
-        """Dessine tout le jeu"""
-        self.screen.fill(self.WHITE)
-        
-        # Dessine la grille
+        """Dessine tout le jeu avec style harmonisé, sans que les textes empiètent sur la grille"""
+        # Palette graphique
+        bg_color = (22, 29, 41)
+        card_color = (36, 45, 60)
+        accent_color = (82, 216, 217)
+        text_color = (240, 240, 240)
+
+        self.screen.fill(bg_color)
+
+        # Fontes harmonisées
+        font = pygame.font.SysFont("Arial", 24)
+        small_font = pygame.font.SysFont("Arial", 20)
+
+        # Dimensions de la grille
+        rows = len(self.game.grid)
+        cols = len(self.game.grid[0])
+        grid_width = cols * self.CELL_SIZE
+        grid_height = rows * self.CELL_SIZE
+        card_padding = 20
+
+        # Positionnement de la carte au centre bas (sous les infos)
+        top_margin = 120
+        card_rect = pygame.Rect(
+            (self.screen.get_width() - grid_width) // 2 - card_padding,
+            top_margin,
+            grid_width + 2 * card_padding,
+            grid_height + 2 * card_padding
+        )
+
+        # Carte de la grille
+        pygame.draw.rect(self.screen, card_color, card_rect, border_radius=12)
+        pygame.draw.rect(self.screen, accent_color, card_rect, width=3, border_radius=12)
+
+        # Dessin des cellules
+        start_x = card_rect.x + card_padding
+        start_y = card_rect.y + card_padding
         for i, row in enumerate(self.game.grid):
             for j, cell in enumerate(row):
-                x = self.MARGIN + j * self.CELL_SIZE
-                y = self.MARGIN + i * self.CELL_SIZE
+                x = start_x + j * self.CELL_SIZE
+                y = start_y + i * self.CELL_SIZE
                 self.draw_cell(x, y, cell)
-        
-        # Informations en haut
-        difficulty_text = self.small_font.render(f"Niveau: {self.game.get_difficulty_name()}", True, self.BLACK)
-        moves_text = self.small_font.render(f"Coups: {self.game.get_moves_count()}", True, self.BLACK)
-        player_text = self.small_font.render(f"Joueur: {self.game.player_name}", True, self.BLACK)
-        controls_text = self.small_font.render("Flèches=Bouger, U=Annuler, R=Reset, ESC=Quitter", True, self.BLACK)
-        
-        self.screen.blit(difficulty_text, (10, 10))
-        self.screen.blit(moves_text, (10, 30))
-        self.screen.blit(player_text, (10, 50))
-        
-        # Contrôles en bas
-        screen_height = self.screen.get_height()
-        self.screen.blit(controls_text, (10, screen_height - 30))
-        
+
+        # Informations alignées en haut à droite
+        info_x = self.screen.get_width() - 300
+        self.screen.blit(font.render(f"Niveau : {self.game.get_difficulty_name()}", True, text_color), (info_x, 20))
+        self.screen.blit(font.render(f"Coups : {self.game.get_moves_count()}", True, text_color), (info_x, 50))
+        self.screen.blit(font.render(f"Joueur : {self.game.player_name}", True, text_color), (info_x, 80))
+
+        # Contrôles en bas, centrés
+        controls_text = small_font.render("Flèches = bouger    U = annuler    R = reset    ESC = quitter", True, accent_color)
+        self.screen.blit(controls_text, (
+            self.screen.get_width() // 2 - controls_text.get_width() // 2,
+            self.screen.get_height() - 40
+        ))
+
         pygame.display.flip()
+
     
     def show_victory(self):
         """Affiche l'écran de victoire harmonisé graphiquement"""
@@ -435,7 +488,8 @@ class SokobanDisplay:
                     sys.exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        return self.show_main_menu()
+                        # CORRECTION: Retourne directement au menu, ne pas relancer le jeu
+                        return "menu"
                     elif event.key == pygame.K_ESCAPE:
                         pygame.quit()
                         sys.exit()
@@ -455,7 +509,8 @@ class SokobanDisplay:
             self.draw_game()
             self.clock.tick(60)
         
-        pygame.display.quit()
+        # CORRECTION: Nettoie proprement avant de quitter
+        self.cleanup_game()
         return
 
     def start_game(self):
@@ -465,7 +520,9 @@ class SokobanDisplay:
             if result is not None:
                 player_name, difficulty = result
                 self.setup_game(difficulty=difficulty, player_name=player_name)
-                self.run()
+                game_result = self.run()
+                # CORRECTION: Après chaque partie, on nettoie et on retourne au menu
+                self.cleanup_game()
             else:
                 break
 

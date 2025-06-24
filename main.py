@@ -2,7 +2,6 @@ import pygame
 import sys
 from display_game import SokobanDisplay
 
-from display_game import SokobanDisplay
 
 def main():
     """Fonction principale simplifiée"""

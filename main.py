@@ -1,8 +1,12 @@
-from game_engine import GameState
-from display_game import SokobanGUI
-from database import ScoreDatabase
+import pygame
+import sys
+from display_game_solver import SokobanDisplay
+
+
+def main():
+    """Fonction principale simplifiée"""
+    game = SokobanDisplay()
+    game.start_game()
 
 if __name__ == "__main__":
-    game_state = GameState("levels/level1.txt")
-    gui = SokobanGUI(game_state)
-    gui.run()
+    main()

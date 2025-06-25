@@ -1,0 +1,21 @@
+# ====== Class Level ======
+
+# Elle charge un fichier .txt contenant un niveau
+
+# Elle stocke la grille sous forme de matrice
+
+# Elle fournit les méthodes d’accès et de modification des cases
+
+ # Elle permet de réinitialiser la grille ou de la sauvegarder
+
+class Level:
+    def __init__(self, file_path):
+        self.file_path = file_path
+        self.grid = []
+        self.load_level()
+
+
+    # Charge grid.txt en une matrice
+def load_level(self):
+    with open(self.file_path, 'r') as f:
+        

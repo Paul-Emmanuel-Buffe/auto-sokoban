@@ -359,6 +359,22 @@ class SokobanDisplay:
 
     def handle_key(self, key):
         """Gère les touches du clavier"""
+        
+        pygame.mixer.init()
+
+        sound_map = {
+            pygame.K_UP: r"C:\Users\alexc\Desktop\laplateforme\projet\annee1\auto-sokoban\sound\683245__saha213131__fart.mp3",
+            pygame.K_DOWN: r"C:\Users\alexc\Desktop\laplateforme\projet\annee1\auto-sokoban\sound\721355__bipolarbad__short-fart-again.mp3",
+            pygame.K_LEFT: r"C:\Users\alexc\Desktop\laplateforme\projet\annee1\auto-sokoban\sound\683245__saha213131__fart.mp3",
+            pygame.K_RIGHT: r"C:\Users\alexc\Desktop\laplateforme\projet\annee1\auto-sokoban\sound\721355__bipolarbad__short-fart-again.mp3",
+            
+        }
+    
+        if key in sound_map:
+            sound = pygame.mixer.Sound(sound_map[key])
+            sound.play()
+    
+
         move_map = {
             pygame.K_UP: 'z',
             pygame.K_DOWN: 's',
@@ -444,6 +460,9 @@ class SokobanDisplay:
 
     
     def show_victory(self):
+        pygame.mixer.init()
+        sound = pygame.mixer.Sound(r"C:\Users\alexc\Desktop\laplateforme\projet\annee1\auto-sokoban\sound\490248__abolla__fart-01.wav")
+        sound.play()
         """Affiche l'écran de victoire harmonisé graphiquement"""
         self.score_manager.save_score(
             self.game.player_name,

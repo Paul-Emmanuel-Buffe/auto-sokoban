@@ -1,6 +1,6 @@
 import pygame
 import sys
-from display_game_solver import SokobanDisplay
+from display_game_custom import SokobanDisplay
 
 
 def main():

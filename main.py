@@ -1,5 +1,4 @@
-import pygame
-import sys
+
 from display_game_custom import SokobanDisplay
 
 
